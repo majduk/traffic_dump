@@ -1,0 +1,5 @@
+INTERFACE=bond0
+FILTER="udp port 5260"
+PARAMS="-s0 -n -C 10000000 -W 100 -Z root"
+DUMP_DIR=/var/dump
+DUMP_FILE_PREFIX=`hostname`_sip_5260
