@@ -5,12 +5,13 @@ rc=0
 
 PID_DIR=/var/run
 DUMP_BIN=/usr/sbin/tcpdump
-CONF_DIR=~/dump.conf.d
+ETC_CONF_DIR=/etc/dump.conf.d
+USR_CONF_DIR=~/dump.conf.d
+DEFAULT_DIR=$(dirname $0)/dump.conf.d
 
 case $action in
 "start")
-  if [ -d "$CONF_DIR" ]; then
-    for file in `find  "$CONF_DIR"  -type f -name '*.conf'`; do
+    for file in `find "$DEFAULT_DIR" "$USR_CONF_DIR" "$ETC_CONF_DIR"  -type f -name '*.conf'`; do
       NAME=`basename $file`
       INTERFACE=any
       FILTER="tcp port 80"
@@ -41,9 +42,6 @@ case $action in
      fi
      
      done
-  else
-    echo "missing configuration $CONF_DIR"
-  fi
   ;;
 "stop")
   for file in `find -L "$PID_DIR" -type f -name 'dumpcap_*.pid' 2>/dev/null`;do
