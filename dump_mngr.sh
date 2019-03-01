@@ -5,18 +5,18 @@ rc=0
 
 PID_DIR=/var/run
 DUMP_BIN=/usr/sbin/tcpdump
-CONF_DIR=/root/traffic_dump/conf.d
+CONF_DIR=~/dump.conf.d
 
 case $action in
 "start")
   if [ -d "$CONF_DIR" ]; then
-    for file in `find  "$CONF_DIR"  -type f -name 'dump.*'`; do
+    for file in `find  "$CONF_DIR"  -type f -name '*.conf'`; do
       NAME=`basename $file`
       INTERFACE=any
       FILTER="tcp port 80"
-      PARAMS="-q -s0"
-      DUMP_DIR=/var/dump
-      DUMP_FILE_PREFIX=dump
+      PARAMS="-q -s0 -C 10 -W2"
+      DUMP_DIR=/tmp/
+      DUMP_FILE_PREFIX=$(hostname)-tcp80
       source $file
             
       pidfile="$PID_DIR"/dumpcap_$NAME.pid
@@ -30,9 +30,10 @@ case $action in
            fi
       else
            if [ "$INTERFACE" != "" ];then
-  	         nohup $DUMP_BIN -i $INTERFACE $PARAMS -w $DUMP_DIR/$DUMP_FILE_PREFIX  $FILTER  > /dev/null 2>&1 &
-             pid=$!
-             echo $pid > "$pidfile"
+  	         nohup sudo $DUMP_BIN -i $INTERFACE $PARAMS -w $DUMP_DIR/$DUMP_FILE_PREFIX  $FILTER  > /dev/null 2>&1 &
+             sleep 1
+             pid=$( ps --ppid $! -o pid= )
+             echo $pid | sudo tee -a "$pidfile" > /dev/null
              echo "Started dumpcap $NAME with pid $pid"
            else
              echo "Parameter INTERFACE cannot be empty"
@@ -45,23 +46,23 @@ case $action in
   fi
   ;;
 "stop")
-  for file in `find "$PID_DIR" -type f -name 'dumpcap_*.pid'`;do
+  for file in `find -L "$PID_DIR" -type f -name 'dumpcap_*.pid' 2>/dev/null`;do
     if [ -f "$file" ];then
       pid=`cat $file`
       if [ -d /proc/$pid ];then
         echo "Stopped dumpcap with pid $pid"
-        kill -9 $pid
+        sudo kill -9 $pid
       else
         echo "Cleaning up pidfile $pidfile";
       fi
-      rm -f "$file"
+      sudo rm -f "$file"
     else
       echo "dumpcap not running"
     fi
   done
   ;;
 "monitor")
-  for file in `find "$PID_DIR" -type f -name 'dumpcap_*.pid'`;do
+  for file in `find -L "$PID_DIR" -type f -name 'dumpcap_*.pid' 2>/dev/null`;do
     if [ -f "$file" ];then
       pid=`cat $file`
       if [ -d /proc/$pid ];then
@@ -80,4 +81,3 @@ case $action in
   echo "usage $0 start|stop|monitor"
 esac
 exit $rc
-
