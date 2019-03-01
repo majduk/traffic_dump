@@ -1,12 +1,17 @@
-# traffic_dump
+# Traffic dump
 
-TCP dump linux  service
+TCP dump linux automation script with monitoring.
 
 1) copy dump_mngr.sh to the hosts
 
-2) create config directory `~/dump.conf.d/` and config file per tcp dump process (with name *.conf).
+2) create config directory. Search path is:
+- /etc/dump.conf.d
+- ~/dump.conf.d
+- sctipt location's subdirectory dump.conf.d
 
-Example:
+Create config file per tcp dump process (with name *.conf).
+
+Example `mgcp.conf`:
 ```
 INTERFACE=any
 FILTER="host 10.10.100.44"
@@ -14,7 +19,4 @@ PARAMS="-s0 -n -C 10000000 -W 100 -Z root"
 DUMP_DIR=/tmp
 DUMP_FILE_PREFIX=`hostname`_mgcp.rtp.3.2
 ```
-
-4) add dump_mngr.sh monitor to cron to ensure service is running
-
 
